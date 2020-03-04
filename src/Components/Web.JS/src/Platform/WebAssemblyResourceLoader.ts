@@ -39,12 +39,23 @@ export class WebAssemblyResourceLoader {
       return { name, url, response };
   }
 
-  logToConsole() {
+  logStatistics() {
+    // Used by test \ benchmarking infrastructure
+    const onDownloadStats = window['Blazor']._internal.downloadStats;
+    if (!onDownloadStats && (!this.bootConfig.debugBuild || !this.bootConfig.cacheBootResources)) {
+      return;
+    }
+
     const cacheLoadsEntries = Object.values(this.cacheLoads);
     const networkLoadsEntries = Object.values(this.networkLoads);
     const cacheResponseBytes = countTotalBytes(cacheLoadsEntries);
     const networkResponseBytes = countTotalBytes(networkLoadsEntries);
     const totalResponseBytes = cacheResponseBytes + networkResponseBytes;
+
+    if (onDownloadStats) {
+      onDownloadStats(totalResponseBytes);
+    }
+
     if (totalResponseBytes === 0) {
       // We have no perf stats to display, likely because caching is not in use.
       return;
